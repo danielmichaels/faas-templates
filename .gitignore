@@ -1,6 +1,10 @@
-
 # Created by https://www.toptal.com/developers/gitignore/api/linux,python,visualstudiocode,node,react,vuejs,python,rust,jetbrains,go
 # Edit at https://www.toptal.com/developers/gitignore?templates=linux,python,visualstudiocode,node,react,vuejs,python,rust,jetbrains,go
+### ADDED BY ME ###
+
+template
+build
+/secrets.sh
 
 ### Go ###
 # If you prefer the allow list template instead of the deny list, see community template:
@@ -501,3 +505,4 @@ yarn-error.log
 
 # End of https://www.toptal.com/developers/gitignore/api/linux,python,visualstudiocode,node,react,vuejs,python,rust,jetbrains,go
 n
+
