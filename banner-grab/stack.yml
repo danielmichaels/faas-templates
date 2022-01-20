@@ -1,0 +1,10 @@
+version: 1.0
+provider:
+  name: openfaas
+  gateway: http://127.0.0.1:8080
+functions:
+  banner-grab:
+    lang: golang-middleware
+    handler: ./banner-grab
+    image: docker.io/danielmichaels/banner-grab:latest
+
