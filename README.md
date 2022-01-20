@@ -26,6 +26,14 @@ declare them on every invocation of `faas-cli`.
 - `OPENFAAS_PREFIX=docker.io/danielmichaels` or use another registry. You'll need to `docker login` as well
 - `OPENFAAS_URL=http://$FAAS_DOMAIN`; the domain of your instance. Defaults to localhost:8080
 
+I like to change the `<name>.yml` of each function to `stack.yml` so that I can call `faas-cli` 
+commands without `-f <name>.yml` each time.
+
+Setting `alias faas=faas-cli` is also handy which is in my `.zshrc` file, with completions. To 
+setup completion, you can add the following (to zshrc):
+
+`command -v faas-cli >/dev/null 2>&1 && source <(faas-cli completion --shell zsh)`
+
 ## Layout
 
 This repo has the following layout
@@ -57,6 +65,18 @@ To create a new golang-middleware function using the cli:
 To see what other templates are possible run `faas-cli template store list` and replace 
 `golang-middleware` with the template you want.
 
+## Usage
+
+To build, push to a registry, deploy to your OpenFaaS instance, you **must** first `cd` into the 
+function you're explicitly wanting to use.
+
+For instance, I want to build, push and deploy `banner-grab` to my instance, this is the process.
+
+1. `cd banner-grab`
+2. `faas-cli build`
+3. `faas-cli push`
+4. `faas-cli deploy`
+5. **tip** do 2,3,4 in on power move; `faas-cli up`
 
 ### Error, no golang-middleware?
 
