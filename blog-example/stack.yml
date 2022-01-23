@@ -1,0 +1,24 @@
+version: 1.0
+provider:
+  name: openfaas
+  gateway: https://faasd.ptco.rocks
+functions:
+  blog-example:
+    lang: golang-middleware
+    handler: ./blog-example
+    image: docker.io/danielmichaels/blog-example:latest
+    build_args:
+      GO111MODULE: on
+    environment:
+      origins: "${ORIGINS:-http://localhost:1313,https://danielms.site}"
+    secrets:
+      - weather-key
+      - ipinfo-key
+
+# faas-cli secret create weather-key.txt --from-file $(pwd)/weather-key.txt.txt
+# faas-cli secret create ipinfo-key --from-file $(pwd)/ipinfo-key.txt
+
+# for local testing
+# mkdir -p /tmp/secrets
+# cp weather-key.txt /tmp/secrets/weather-key
+# docker run --rm -it -v /tmp/secrets/:/var/openfaas/secrets/ danielmichaels/blog-example
