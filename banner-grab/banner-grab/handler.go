@@ -5,12 +5,25 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"strings"
 )
+
+type envelope map[string]interface{}
 
 // Handle handles the request
 func Handle(w http.ResponseWriter, r *http.Request) {
-	hostname, _ := os.Hostname()
+	switch r.Method {
+	case http.MethodGet:
+		break
+	case http.MethodPost:
+		break
+	default:
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	validateCORS(w, r)
 
+	hostname, _ := os.Hostname()
 	data := struct {
 		Hostname string      `json:"hostname,omitempty"`
 		IP       []string    `json:"ip,omitempty"`
@@ -52,8 +65,6 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-type envelope map[string]interface{}
-
 func writeJSON(w http.ResponseWriter, status int, data envelope, headers http.Header) error {
 	js, err := json.Marshal(data)
 	if err != nil {
@@ -68,4 +79,29 @@ func writeJSON(w http.ResponseWriter, status int, data envelope, headers http.He
 	w.WriteHeader(status)
 	_, _ = w.Write(js)
 	return nil
+}
+
+func validateCORS(w http.ResponseWriter, r *http.Request) {
+	origins := strings.Split(os.Getenv("origins"), ",")
+
+	if r.Method == "OPTIONS" {
+		for _, origin := range origins {
+			if r.Header.Get("Origin") == origin {
+				w.Header().Set("Access-Control-Allow-Headers", "Authorization")
+				w.Header().Set("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
+				w.Header().Add("Access-Control-Allow-Origin", origin)
+				w.Header().Add("Access-Control-Max-Age", "300")
+				w.WriteHeader(http.StatusNoContent)
+				return
+			}
+		}
+	}
+
+	for _, origin := range origins {
+		if r.Header.Get("Origin") == origin {
+			w.Header().Set("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
+			w.Header().Add("Access-Control-Allow-Origin", origin)
+		}
+	}
+	return
 }

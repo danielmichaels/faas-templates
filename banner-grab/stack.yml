@@ -7,4 +7,7 @@ functions:
     lang: golang-middleware
     handler: ./banner-grab
     image: docker.io/danielmichaels/banner-grab:latest
-
+    environment:
+      origins: "${ORIGINS:-http://localhost:1313,https://danielms.site}"
+    build_args:
+      GO111MODULE: on
