@@ -1,0 +1,16 @@
+version: 1.0
+provider:
+  name: openfaas
+  gateway: https://faasd.ptco.rocks
+functions:
+  plausible:
+    lang: golang-middleware
+    handler: ./plausible
+    image: docker.io/danielmichaels/plausible:latest
+    build_args:
+      GO111MODULE: on
+    environment:
+      origins: "${ORIGINS:-http://localhost:1313,https://danielms.site}"
+    secrets:
+      - plausible-key
+
