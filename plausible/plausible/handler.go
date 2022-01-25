@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 	"time"
@@ -28,6 +28,12 @@ type PlausibleAggregate struct {
 		Visitors struct {
 			Value int `json:"value"`
 		} `json:"visitors"`
+	} `json:"results"`
+}
+type PlausibleTimeseries struct {
+	Results []struct {
+		Date     string `json:"date"`
+		Visitors int    `json:"visitors"`
 	} `json:"results"`
 }
 type SiteData struct {
@@ -63,52 +69,86 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 	}
 	input.ApiKey = strings.TrimSpace(string(apiKey))
 
-	analytics := PlausibleAggregate{}
-	err = plausibleAggregate(input, &analytics)
+	aggregate := PlausibleAggregate{}
+	err = plausibleAggregate(input, &aggregate)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
-		log.Printf("err: %#v", err)
+		return
+	}
+	timeseries := PlausibleTimeseries{}
+	err = plausibleTimeseries(input, &timeseries)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	err = writeJSON(w, http.StatusOK, envelope{"analytics": analytics}, nil)
+	err = writeJSON(w, http.StatusOK, envelope{"aggregate": aggregate, "timeseries": timeseries}, nil)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
 
-func checkRedirectFunc(r *http.Request, via []*http.Request) error {
-	r.Header.Add("Authorization", fmt.Sprintf("Bearer: %s", via[0].Header.Get("Authorization")))
-	return nil
-}
 func plausibleAggregate(input SiteData, result *PlausibleAggregate) error {
 	// take in date from client in format 2021-12-01,2021-12-31
-	apiUrl := "https://plausible.io/api/v1/stats/aggregate?site_id=%s&period=custom&date=%s,%s&metrics=visitors,pageviews,bounce_rate,visit_duration"
-	url := fmt.Sprintf(apiUrl, input.SiteId, input.StartDate, input.EndDate)
-	log.Println(url)
+	urlParams := url.Values{
+		"site_id": {input.SiteId},
+		"period":  {"custom"},
+		"date":    {fmt.Sprintf("%s,%s", input.StartDate, input.EndDate)},
+		"metrics": {"visitors,pageviews,bounce_rate,visit_duration"},
+	}
+
+	apiUrl := "https://plausible.io/api/v1/stats/aggregate?" + urlParams.Encode()
 
 	client := &http.Client{Timeout: 10 * time.Second}
-	client.CheckRedirect = checkRedirectFunc
-	req, err := http.NewRequest(http.MethodGet, url, nil)
+
+	req, err := http.NewRequest(http.MethodGet, apiUrl, nil)
 	if err != nil {
 		return err
 	}
-	req.Header.Add("Authorization", fmt.Sprintf("Bearer: %s", input.ApiKey))
-	log.Println(req.Header.Get("Authorization"))
+	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", input.ApiKey))
 
-	log.Printf("request: %#v", req)
 	r, err := client.Do(req)
 	if err != nil {
-		log.Println("error do", err)
 		return err
 	}
 	if r.StatusCode != http.StatusOK {
-		log.Println(r.Body)
 		return errors.New(fmt.Sprintf("unexpected status: %d", r.StatusCode))
 	}
 	defer r.Body.Close()
 
-	log.Printf("body: %#v", r.Body)
+	err = json.NewDecoder(r.Body).Decode(&result)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func plausibleTimeseries(input SiteData, result *PlausibleTimeseries) error {
+	urlParams := url.Values{
+		"site_id": {input.SiteId},
+		"period":  {"month"},
+		"date":    {input.StartDate},
+		"metrics": {"visitors"},
+	}
+
+	apiUrl := "https://plausible.io/api/v1/stats/timeseries?" + urlParams.Encode()
+
+	client := &http.Client{Timeout: 10 * time.Second}
+
+	req, err := http.NewRequest(http.MethodGet, apiUrl, nil)
+	if err != nil {
+		return err
+	}
+	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", input.ApiKey))
+
+	r, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	if r.StatusCode != http.StatusOK {
+		return errors.New(fmt.Sprintf("unexpected status: %d", r.StatusCode))
+	}
+	defer r.Body.Close()
 
 	err = json.NewDecoder(r.Body).Decode(&result)
 	if err != nil {
@@ -124,7 +164,7 @@ func validateCORS(w http.ResponseWriter, r *http.Request) {
 		for _, origin := range origins {
 			if r.Header.Get("Origin") == origin {
 				w.Header().Set("Access-Control-Allow-Headers", "Authorization")
-				w.Header().Set("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
+				w.Header().Set("Access-Control-Allow-Methods", "GET,POST,OPTIONS")
 				w.Header().Add("Access-Control-Allow-Origin", origin)
 				w.Header().Add("Access-Control-Max-Age", "300")
 				w.WriteHeader(http.StatusNoContent)
@@ -135,7 +175,7 @@ func validateCORS(w http.ResponseWriter, r *http.Request) {
 
 	for _, origin := range origins {
 		if r.Header.Get("Origin") == origin {
-			w.Header().Set("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
+			w.Header().Set("Access-Control-Allow-Methods", "GET,POST,OPTIONS")
 			w.Header().Add("Access-Control-Allow-Origin", origin)
 		}
 	}
