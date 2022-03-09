@@ -1,0 +1,11 @@
+version: 1.0
+provider:
+  name: openfaas
+  gateway: https://faasd.ptco.rocks
+functions:
+  links:
+    lang: python3
+    handler: ./links
+    image: docker.io/danielmichaels/links:latest
+    environment:
+      content_type: text/html
