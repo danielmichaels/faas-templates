@@ -7,7 +7,7 @@ My collection of OpenFaaS templates.
 These templates should work on OpenFaaS whether running in a Kubernetes cluster, or on [faasd] which
 is what these run on primarily.
 
-You can test them out using docker, or by running [faasd] using [mutlipass](https://multipass.run).
+You can test them out using docker, or by running [faasd] using [multipass](https://multipass.run).
 For more instructions on how to get started refer to
 the [faasd multipass instructions](https://github.com/openfaas/faasd/blob/master/docs/MULTIPASS.md)
 
@@ -77,6 +77,17 @@ For instance, I want to build, push and deploy `banner-grab` to my instance, thi
 3. `faas-cli push`
 4. `faas-cli deploy`
 5. **tip** do 2,3,4 in on power move; `faas-cli up`
+
+## Adding Secrets
+
+Most templates have a Makefile which handles creating and using secrets in development. However,
+in production, the secret must be added to kubernetes.
+
+`faas-cli secret create <secret-name> --from-file=<secret.txt>`
+
+Check the secret is in the correct namespace.
+
+`kubectl get secrets -n openfaas-fn`
 
 ### Error, no golang-middleware?
 

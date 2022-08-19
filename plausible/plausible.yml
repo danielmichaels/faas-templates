@@ -1,7 +1,8 @@
 version: 1.0
 provider:
   name: openfaas
-  gateway: https://faasd.ptco.rocks
+#  gateway: https://faasd.ptco.rocks
+  gateway: https://openfaas.k3s.dansult.space
 functions:
   plausible:
     lang: golang-middleware
@@ -10,7 +11,7 @@ functions:
     build_args:
       GO111MODULE: on
     environment:
-      origins: "${ORIGINS:-http://localhost:1313,https://danielms.site}"
+      origins: "${ORIGINS:-http://localhost:1313,https://danielms.site,https://deploy-preview-47--danielms.netlify.app}"
     secrets:
       - plausible-key
 

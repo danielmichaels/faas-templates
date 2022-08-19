@@ -1,7 +1,7 @@
 version: 1.0
 provider:
   name: openfaas
-  gateway: https://faasd.ptco.rocks
+  gateway: https://openfaas.k3s.dansult.space
 functions:
   links:
     lang: python3

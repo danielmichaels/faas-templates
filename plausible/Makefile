@@ -1,6 +1,6 @@
 PROJECT_NAME=plausible
 export ORIGINS=http://localhost:1313,https://danielms.site
-export FAASD_DOMAIN=faasd.ptco.rocks
+export FAASD_DOMAIN=openfaas.k3s.dansult.space
 export OPENFAAS_PREFIX=docker.io/danielmichaels
 export OPENFAAS_URL=https://${FAASD_DOMAIN}
 
