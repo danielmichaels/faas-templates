@@ -11,7 +11,7 @@ functions:
     build_args:
       GO111MODULE: on
     environment:
-      origins: "${ORIGINS:-http://localhost:1313,https://danielms.site,https://deploy-preview-47--danielms.netlify.app}"
+      origins: "${ORIGINS:-http://localhost:1313,https://danielms.site}"
     secrets:
       - plausible-key
 

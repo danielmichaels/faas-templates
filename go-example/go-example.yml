@@ -1,0 +1,11 @@
+version: 1.0
+provider:
+  name: openfaas
+  gateway: https://openfaas.k3s.dansult.space
+functions:
+  go-example:
+    lang: golang-middleware
+    handler: ./go-example
+    image: docker.io/danielmichaels/go-faas-routes-example:latest
+    environment:
+      DOMAIN: "${DOMAIN:-http://localhost:8081}"
