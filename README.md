@@ -78,6 +78,33 @@ For instance, I want to build, push and deploy `banner-grab` to my instance, thi
 4. `faas-cli deploy`
 5. **tip** do 2,3,4 in on power move; `faas-cli up`
 
+## Hot reloading in development
+
+Through the use of docker-compose, its now possible to do hot-reloading whilst in development. 
+So far, this has proven effective for `golang-middleware` but `python` and `node` are also supported
+via this [link](https://simonemms.com/blog/2020/08/12/live-reload-for-openfaas).
+
+The only thing that does not work "*out of the box*" is `static` files. This is because the 
+`docker-compose.yml` alters the build, making the paths different between production and dev.
+
+To get around this, you can correct the pathing with a `if`, or helper function such as:
+
+```go
+// This requires DOCKER_COMPOSE=true to be set as an environment variable.
+// Set this environment variable in the Makefile and docker-compose.environment.
+func isDockerCompose() string {
+	file := os.Getenv("DOCKER_COMPOSE")
+	index := "./function/static/index.html"
+	if file == "" {
+		index = "./static/index.html"
+	}
+	return index
+}
+
+```
+
+Otherwise, this method works quite well; `make dev/reload` to get started.
+
 ## Adding Secrets
 
 Most templates have a Makefile which handles creating and using secrets in development. However,

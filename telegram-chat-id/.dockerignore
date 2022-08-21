@@ -1,0 +1,5 @@
+.env
+.git
+docker-compose.yml
+telegram-chat-id/.air.toml
+tmp

@@ -1,0 +1,17 @@
+version: '3.7'
+services:
+  golang-middleware:
+    build:
+      context: ./template/golang-middleware
+      target: build
+    ports:
+      - "8081:8080"
+    environment:
+      DOCKER_COMPOSE: "true"
+      fprocess: air -c /go/src/handler/function/.air.toml
+      mode: http
+      upstream_url: http://127.0.0.1:8082
+    volumes:
+      - ./telegram-chat-id:/go/src/handler/function
+      - /tmp/secrets/:/var/openfaas/secrets
+    command: sh -c "go install github.com/cosmtrek/air@latest && fwatchdog"
