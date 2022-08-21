@@ -1,0 +1,6 @@
+.env
+.git
+chat-id
+tg-token
+docker-compose.yml
+pollen-detector/.air.toml

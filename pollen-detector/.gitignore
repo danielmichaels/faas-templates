@@ -1,0 +1,5 @@
+template
+build
+tmp/
+chat-id
+tg-token
