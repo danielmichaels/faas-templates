@@ -60,7 +60,7 @@ These are ignored but will need to exist locally.
 
 To create a new golang-middleware function using the cli:
 
-`mkdir -p name && cd $_ && faas-cli template store pull golang-middleware && faas-cli new --lang golang-middleware name`
+`export PROJECT=pollen-detector; mkdir -p $PROJECT; cd $_; faas-cli template store pull golang-middleware && faas-cli new --lang golang-middleware $PROJECT`
 
 To see what other templates are possible run `faas-cli template store list` and replace 
 `golang-middleware` with the template you want.

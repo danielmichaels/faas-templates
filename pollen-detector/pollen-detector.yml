@@ -1,0 +1,16 @@
+version: 1.0
+provider:
+  name: openfaas
+  gateway: https://openfaas.k3s.dansult.space
+functions:
+  pollen-detector:
+    lang: golang-middleware
+    handler: ./pollen-detector
+    image: docker.io/danielmichaels/pollen-detector:latest
+    secrets:
+      - tg-token
+      - chat-id
+    annotations:
+      topic: cron-function
+      schedule: "15 21 * * *"
+
