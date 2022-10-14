@@ -7,4 +7,12 @@ functions:
     lang: golang-middleware
     handler: ./timesheet-calculator
     image: docker.io/danielmichaels/timesheet-calculator:latest
+    secrets:
+      - secrets/secret-b2AppKey
+      - secrets/secret-b2KeyID
+      - secrets/secret-b2Server
+    annotations:
+      topic: cron-function
+      schedule: "15 21 * * *"
+
 
