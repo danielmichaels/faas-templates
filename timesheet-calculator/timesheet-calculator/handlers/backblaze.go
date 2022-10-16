@@ -13,14 +13,16 @@ import (
 	"strings"
 )
 
-type B2 interface {
+type DataStore interface {
 	// Download a file from s3 passing the filepath in s3, and the filepath to
 	// download that file to locally
 	Download(from string, to string) error
 	// List lists all the files within the bucket
 	List() ([]string, error)
 }
-
+type Store struct {
+	Data DataStore
+}
 type B2Client struct {
 	bucketName string
 	s3Client   *s3.S3
@@ -37,7 +39,7 @@ func getSecret(secretName string) ([]byte, error) {
 	return []byte(s), nil
 }
 
-func NewB2Client() (B2, error) {
+func NewDataStore() (*Store, error) {
 	b2AppKey, err := getSecret("b2AppKey")
 	if err != nil {
 		log.Fatalln("no b2AppKey found")
@@ -55,10 +57,6 @@ func NewB2Client() (B2, error) {
 		log.Fatalln("no b2Bucket found")
 	}
 
-	if err != nil {
-		return nil, err
-	}
-
 	cfg := &aws.Config{
 		Endpoint:    aws.String(string(endpoint)),
 		Region:      aws.String("us-east-002"),
@@ -72,9 +70,11 @@ func NewB2Client() (B2, error) {
 
 	cl := s3.New(s)
 
-	return &B2Client{
-		bucketName: string(b2Bucket),
-		s3Client:   cl,
+	return &Store{
+		Data: B2Client{
+			bucketName: string(b2Bucket),
+			s3Client:   cl,
+		},
 	}, nil
 }
 
@@ -88,14 +88,14 @@ func (b B2Client) Download(filename string, to string) error {
 	defer file.Close()
 
 	dl := s3manager.NewDownloaderWithClient(b.s3Client)
-	f, err := dl.Download(file, &s3.GetObjectInput{
+	_, err = dl.Download(file, &s3.GetObjectInput{
 		Bucket: &b.bucketName,
 		Key:    &filename,
 	})
 	if err != nil {
+		_ = os.Remove(to)
 		return fmt.Errorf("b2.download error: failed to download file '%s'", err)
 	}
-	log.Printf("downloaded file: '%q'", f)
 	return nil
 }
 

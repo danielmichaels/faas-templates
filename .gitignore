@@ -4,6 +4,7 @@
 
 template
 build
+/development/
 /secrets.sh
 
 ### Go ###
