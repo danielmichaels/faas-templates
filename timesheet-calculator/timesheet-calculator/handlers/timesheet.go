@@ -49,15 +49,15 @@ func searchTimesheetBackward(ts []string) (string, error) {
 		time.Now().AddDate(0, 0, -12),
 		time.Now().AddDate(0, 0, -13),
 	}
-	if len(ts) > 3 {
-		sort.Sort(sort.Reverse(sort.StringSlice(ts)))
-	}
-	for i, d := range searchableDates {
+	sort.Sort(sort.Reverse(sort.StringSlice(ts)))
+	for _, d := range searchableDates {
 		tFmt := fmt.Sprintf("%d_%02d_%02d", d.Year(), d.Month(), d.Day())
 		ref := fmt.Sprintf("timesheets/timesheet_%s_auto_database.db", tFmt)
-		if ref == ts[i] {
-			log.Println("most recent database", ref)
-			return ref, nil
+		for _, t := range ts {
+			if ref == t {
+				log.Println("most recent database", ref)
+				return ref, nil
+			}
 		}
 	}
 	return "", errors.New("no database found in the last 14 days")

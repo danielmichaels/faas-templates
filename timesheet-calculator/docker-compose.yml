@@ -10,6 +10,12 @@ services:
       fprocess: air -c /go/src/handler/function/.air.toml
       mode: http
       upstream_url: http://127.0.0.1:8082
+      email_host: "smtp.fastmail.com"
+      email_port: 587
+      write_timeout: 40s
+      read_timeout: 40s
+      exec_timeout: 40s
+      healthcheck_interval: 5s
     volumes:
       - ./timesheet-calculator:/go/src/handler/function
       - ./secrets/:/var/openfaas/secrets

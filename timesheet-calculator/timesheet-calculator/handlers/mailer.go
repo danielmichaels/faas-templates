@@ -23,7 +23,7 @@ func NewMailer(host string, port int, username, password, from string) *Mailer {
 	}
 }
 
-func (m *Mailer) Send(recipient string, data any, patterns ...string) error {
+func (m *Mailer) send(recipient string, data any, patterns ...string) error {
 	for i := range patterns {
 		patterns[i] = "emails/" + patterns[i]
 	}
@@ -73,5 +73,18 @@ func (m *Mailer) Send(recipient string, data any, patterns ...string) error {
 		time.Sleep(2 * time.Second)
 	}
 
+	return err
+}
+
+func (m *Mailer) SendDaily(r string, d any, p ...string) error {
+	err := m.send(r, d, "daily.tmpl")
+	return err
+}
+func (m *Mailer) SendWeekly(r string, d any, p ...string) error {
+	err := m.send(r, d, "weekly.tmpl")
+	return err
+}
+func (m *Mailer) SendMonthly(r string, d any, p ...string) error {
+	err := m.send(r, d, "monthly.tmpl")
 	return err
 }

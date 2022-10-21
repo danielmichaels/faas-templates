@@ -2,8 +2,11 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
+	"strings"
 )
 
 func ServerError(w http.ResponseWriter, r *http.Request, err error) {
@@ -37,4 +40,15 @@ func WriteJSON(w http.ResponseWriter, status int, data Envelope, headers http.He
 	w.WriteHeader(status)
 	_, _ = w.Write(js)
 	return nil
+}
+
+// GetSecret retrieves the secret from openfaas and makes it available for use.
+func GetSecret(secretName string) ([]byte, error) {
+	secret, err := ioutil.ReadFile(fmt.Sprintf("/var/openfaas/secrets/%s", secretName))
+	if err != nil {
+		return nil, err
+	}
+
+	s := strings.TrimSpace(string(secret))
+	return []byte(s), nil
 }

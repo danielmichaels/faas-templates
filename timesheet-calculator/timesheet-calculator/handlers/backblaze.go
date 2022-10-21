@@ -7,10 +7,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
-	"io/ioutil"
 	"log"
 	"os"
-	"strings"
 )
 
 type DataStore interface {
@@ -28,31 +26,20 @@ type B2Client struct {
 	s3Client   *s3.S3
 }
 
-// getSecret retrieves the secret from openfaas and makes it available for use.
-func getSecret(secretName string) ([]byte, error) {
-	secret, err := ioutil.ReadFile(fmt.Sprintf("/var/openfaas/secrets/%s", secretName))
-	if err != nil {
-		return nil, err
-	}
-
-	s := strings.TrimSpace(string(secret))
-	return []byte(s), nil
-}
-
 func NewDataStore() (*Store, error) {
-	b2AppKey, err := getSecret("b2AppKey")
+	b2AppKey, err := GetSecret("b2appkey")
 	if err != nil {
 		log.Fatalln("no b2AppKey found")
 	}
-	b2KeyId, err := getSecret("b2KeyID")
+	b2KeyId, err := GetSecret("b2keyid")
 	if err != nil {
 		log.Fatalln("no b2KeyID found")
 	}
-	endpoint, err := getSecret("b2Server")
+	endpoint, err := GetSecret("b2server")
 	if err != nil {
 		log.Fatalln("no b2Server found")
 	}
-	b2Bucket, err := getSecret("b2Bucket")
+	b2Bucket, err := GetSecret("b2bucket")
 	if err != nil {
 		log.Fatalln("no b2Bucket found")
 	}

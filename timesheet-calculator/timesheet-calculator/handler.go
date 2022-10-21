@@ -3,10 +3,11 @@ package function
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"handler/function/handlers"
 	"log"
 	_ "modernc.org/sqlite"
+	"os"
+	"strconv"
 	"time"
 
 	"net/http"
@@ -37,19 +38,45 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	mailPassword, err := handlers.GetSecret("mail-password")
+	if err != nil {
+		handlers.ServerError(w, r, err)
+		return
+	}
+	mailUsername, err := handlers.GetSecret("mail-username")
+	if err != nil {
+		handlers.ServerError(w, r, err)
+		return
+	}
+	mailFrom, err := handlers.GetSecret("mail-from")
+	if err != nil {
+		handlers.ServerError(w, r, err)
+		return
+	}
+	emailPort, err := strconv.Atoi(os.Getenv("email_port"))
+	if err != nil {
+		handlers.ServerError(w, r, err)
+		return
+	}
+
 	app := Application{
-		Cal:    handlers.NewCalendar(handlers.OldContractEnd),
-		Time:   handlers.NewTimeModel(db),
-		Db:     handlers.NewDB(db),
-		Mailer: handlers.NewMailer("smtp.mailtrap.io", 2525, "", "", "timesheets@dansult.space"),
-		B2:     b2,
+		Cal:  handlers.NewCalendar(handlers.OldContractEnd),
+		Time: handlers.NewTimeModel(db),
+		Db:   handlers.NewDB(db),
+		Mailer: handlers.NewMailer(
+			os.Getenv("email_host"),
+			emailPort,
+			string(mailUsername),
+			string(mailPassword),
+			string(mailFrom),
+		),
+		B2: b2,
 	}
 	list, err := app.B2.Data.List()
 	if err != nil {
 		handlers.ServerError(w, r, err)
 		return
 	}
-	fmt.Println("LIST", list)
 
 	ts, err := handlers.MostRecentTimesheet(list)
 	if err != nil {
@@ -82,11 +109,15 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 		"AverageHours":      avgHourDaily,
 		"ContractEnd":       handlers.OldContractEnd.Format("02-01-2006"),
 	}
-	err = app.Mailer.Send(toEmail, data, "daily.tmpl")
+	log.Println("attempting to send email")
+	err = app.Mailer.SendDaily(toEmail, data)
 	if err != nil {
+		log.Println("email failed to send")
 		handlers.ServerError(w, r, err)
+		return
 	}
 
+	log.Println("successfully sent email")
 	_ = handlers.WriteJSON(w, http.StatusOK, handlers.Envelope{"status": "OK"}, nil)
 }
 
