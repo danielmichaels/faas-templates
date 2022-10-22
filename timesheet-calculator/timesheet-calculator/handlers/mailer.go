@@ -76,15 +76,15 @@ func (m *Mailer) send(recipient string, data any, patterns ...string) error {
 	return err
 }
 
-func (m *Mailer) SendDaily(r string, d any, p ...string) error {
-	err := m.send(r, d, "daily.tmpl")
+func (m *Mailer) SendDaily(recipient string, data any, p ...string) error {
+	err := m.send(recipient, data, "daily.tmpl")
 	return err
 }
-func (m *Mailer) SendWeekly(r string, d any, p ...string) error {
-	err := m.send(r, d, "weekly.tmpl")
+func (m *Mailer) SendWeekly(recipient string, data any, p ...string) error {
+	err := m.send(recipient, data, "weekly.tmpl")
 	return err
 }
-func (m *Mailer) SendMonthly(r string, d any, p ...string) error {
-	err := m.send(r, d, "monthly.tmpl")
+func (m *Mailer) SendMonthly(recipient string, data any, p ...string) error {
+	err := m.send(recipient, data, "monthly.tmpl")
 	return err
 }

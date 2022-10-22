@@ -109,15 +109,52 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 		"AverageHours":      avgHourDaily,
 		"ContractEnd":       handlers.OldContractEnd.Format("02-01-2006"),
 	}
-	log.Println("attempting to send email")
-	err = app.Mailer.SendDaily(toEmail, data)
-	if err != nil {
-		log.Println("email failed to send")
-		handlers.ServerError(w, r, err)
-		return
+	if app.Cal.Calendar.IsWorkday(time.Now()) {
+		log.Println("attempting to send daily email")
+		err = app.Mailer.SendDaily(toEmail, data)
+		if err != nil {
+			log.Println("email failed to send")
+			handlers.ServerError(w, r, err)
+			return
+		}
+		log.Println("successfully sent email")
 	}
 
-	log.Println("successfully sent email")
+	if app.Cal.IsFriday() {
+		log.Println("attempting to send weekly email")
+		t, err := app.Db.GetLastWeek(handlers.LastSevenDays)
+		if err != nil {
+			log.Println("error: failed to determine last weeks information")
+			handlers.ErrorResponse(w, r, http.StatusNotFound, err, "not found")
+			return
+		}
+
+		meanDaily, err := handlers.WeeklyMeanDaily(t)
+		if err != nil {
+			log.Println("error: failed to determine last weeks information")
+			handlers.ServerError(w, r, err)
+			return
+		}
+
+		weeklyData := map[string]any{
+			"MonthDaysLeft":     app.Cal.DaysLeftThisMonth(),
+			"ContractHoursLeft": app.Cal.HoursLeft(),
+			"AverageHours":      avgHourDaily,
+			"ContractEnd":       handlers.OldContractEnd.Format("02-01-2006"),
+			"Income":            handlers.EstimatedIncome(t),
+			"MeanDaily":         meanDaily,
+			"NumDays":           len(t),
+		}
+		log.Println(weeklyData)
+
+		err = app.Mailer.SendWeekly(toEmail, weeklyData)
+		if err != nil {
+			log.Println("email failed to send")
+			handlers.ServerError(w, r, err)
+			return
+		}
+		log.Println("successfully sent email")
+	}
 	_ = handlers.WriteJSON(w, http.StatusOK, handlers.Envelope{"status": "OK"}, nil)
 }
 

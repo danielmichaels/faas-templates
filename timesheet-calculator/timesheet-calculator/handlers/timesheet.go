@@ -9,14 +9,6 @@ import (
 )
 
 var (
-	ContractStart = `SELECT date1,date2,amount,ROUND((JULIANDAY(date2) - JULIANDAY(date1))*86400)
-    AS diff
-    FROM times
-    WHERE date1 between '2022-11-30' AND JULIANDAY('now')`
-	OldContract = `SELECT date1,date2,amount,ROUND((JULIANDAY(date2) - JULIANDAY(date1))*86400)
-    AS diff
-    FROM times
-    WHERE date1 between '2020-11-30' AND '2022-11-29'`
 	OldContractEnd = time.Date(2022, 11, 30, 0, 0, 0, 00, time.UTC)
 	NewContractEnd = time.Date(2024, 07, 00, 0, 0, 0, 00, time.UTC)
 )
@@ -27,6 +19,18 @@ func ContractHoursToNow(secs int) (time.Duration, error) {
 		return 0, fmt.Errorf("failed to parse duration: %w", err)
 	}
 	return h, nil
+}
+
+func WeeklyMeanDaily(t []*Time) (time.Duration, error) {
+	md := 0
+	for _, v := range t {
+		md = v.TotalTime
+	}
+	meanDaily, err := ContractHoursToNow(md)
+	if err != nil {
+		return 0, err
+	}
+	return meanDaily, nil
 }
 
 // searchTimesheetBackward searches over a date time range of fourteen (14) days
