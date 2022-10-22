@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>Get Telegram Chat ID</title>
+	<meta charset="UTF-8" />
+	<style>
+		body {
+			font-family: sans-serif;
+		}
+
+		label{
+			font-size: 21px;
+			padding: 12px;
+		}
+
+		button{
+			padding: 12px;
+		}
+
+		input{
+			padding: 12px;
+		}
+
+		.button {
+			background-color: #4caf50;
+			/* Green */
+			border: none;
+			color: white;
+			padding: 15px 32px;
+			text-align: center;
+			text-decoration: none;
+			display: inline-block;
+			font-size: 21px;
+			cursor: pointer;
+		}
+
+		#jsonresponse{
+			border: solid 1px gray;
+			width: 450px;
+			min-height:20px;
+		}
+
+		#http_api_token{ 
+			width: 450px;
+			font-size: 21px;
+			margin-bottom: 8px;
+		}
+		#chatid{
+			border: none;
+			font-size: 21px;
+			font-weight: bold
+		}
+
+		@keyframes highlight-pre {
+			0% {
+				background: #00ffaa;
+			}
+
+			100% {
+				background: #f8f8f8;
+			}
+		}
+
+		.run-highlight-pre {
+			animation: highlight-pre 0.5s;
+		}
+
+	</style>
+	<script>
+		function getChatID() {
+				var xhttp = new XMLHttpRequest();
+				xhttp.onreadystatechange = function () {
+						if (this.readyState === 4) {
+								if (this.status === 200) {
+										var myobj = JSON.parse(this.responseText)
+										//if 
+										try {
+												myobj.result.forEach((m)=>{
+														//console.dir(m)
+														if(m.message && m.message.chat && m.message.chat.type && (m.message.chat.type === "group" || m.message.chat.type === "private"))
+														{
+																document.getElementById("chatid").value = m.message.chat.id
+														}
+												})
+
+										} catch (e) {
+												console.log(e)
+										}
+										try {
+												document.getElementById("jsonresponse").innerHTML = JSON.stringify(myobj, undefined, 2)
+										} catch (e) {
+												console.log(e)
+										}
+								} else {
+										document.getElementById("jsonresponse").innerHTML = "Error, check your BOT HTTP API Token"
+								}
+								document.getElementById("jsonresponse").style = "animation:highlight-pre 1s"
+								setTimeout(() => {
+										document.getElementById("jsonresponse").style = "animation:none"
+								}, 1000)
+						}
+				};
+				//console.log(document.getElementById("params").value)
+				var api_token = document.getElementById("http_api_token").value
+				var re = /[0-9]{9}:[a-zA-Z0-9_-]{35}/
+				if (re.exec(api_token)) {
+						xhttp.open("GET", "https://api.telegram.org/bot" + document.getElementById("http_api_token").value + "/getUpdates", true)
+						xhttp.setRequestHeader("Content-type", "application/json")
+						xhttp.send()
+				} else {
+						document.getElementById("jsonresponse").innerHTML = "Error, check your BOT HTTP API Token"
+				}
+		}
+	</script>
+</head>
+
+<body>
+	<h1>Get Telegram Chat ID</h1>
+    <p>Credits: Sean-Bradley. <a href="https://codesandbox.io/s/get-telegram-chat-id-q3qkk?from-embed=&file=/index.html:0-3153">Original Work</a></p>
+	<label for="http_api_token">HTTP API Token</label><br/>
+  <input type="text" id="http_api_token" name="http_api_token" placeholder="Your BOT API Token Here. (XXX:YYYYYYY)"><br/>   
+	<button class="button" onclick="getChatID()">Get Chat ID</button>    
+	<hr>
+	<label for="chatid">The Chat ID = </label>
+	<input type="text" id="chatid" readonly="true" style="width:150px"></input>
+	<pre id="jsonresponse" class="pre"></pre>	
+</body>
+
+</html>

@@ -1,0 +1,10 @@
+version: 1.0
+provider:
+  name: openfaas
+  gateway: https://openfaas.k3s.dansult.space
+functions:
+  telegram-chat-id:
+    lang: golang-middleware
+    handler: ./telegram-chat-id
+    image: docker.io/danielmichaels/telegram-chat-id:latest
+
