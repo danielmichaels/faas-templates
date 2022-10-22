@@ -60,6 +60,10 @@ These are ignored but will need to exist locally.
 
 To create a new golang-middleware function using the cli:
 
+Note: `new-faas` is a [bash script] that can automate this for you (and) more.
+
+[bash script]: https://raw.githubusercontent.com/danielmichaels/dot/master/scripts/new-faas
+
 `export PROJECT=pollen-detector; mkdir -p $PROJECT; cd $_; faas-cli template store pull golang-middleware && faas-cli new --lang golang-middleware $PROJECT`
 
 To see what other templates are possible run `faas-cli template store list` and replace 

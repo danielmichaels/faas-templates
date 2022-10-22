@@ -1,0 +1,30 @@
+{{define "subject"}}Daily Timesheet Check{{end}}
+
+{{define "plainBody"}}
+  Daily Contract Hours Reminder
+
+  Days left this month: {{ .MonthDaysLeft }}
+  Hours left in contact: {{ .ContractHoursLeft }}
+
+  To achieve zero hours at contract end: {{ formatFloat .AverageHours 2}} hours per day
+
+  Sent at: {{now}}
+{{end}}
+
+{{define "htmlBody"}}
+<!doctype html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  </head>
+  <body>
+    <h1>Daily Contract Hours Reminder</h1>
+    <p>Contract End: {{ .ContractEnd }}</p>
+    <p>Contract Hours Remaining: {{ .ContractHoursLeft}}</p>
+    <p>Days left this month: {{ .MonthDaysLeft }}</p>
+    <p>Average hours to do each day to reach contract zero: {{ formatFloat .AverageHours 2 }} hours per day</p>
+    <small>Sent at: {{now}}</small>
+  </body>
+</html>
+{{end}}

@@ -1,0 +1,29 @@
+version: 1.0
+provider:
+  name: openfaas
+  gateway: https://openfaas.k3s.dansult.space
+functions:
+  timesheet-calculator:
+    lang: golang-middleware
+    handler: ./timesheet-calculator
+    image: docker.io/danielmichaels/timesheet-calculator:latest
+    environment:
+      email_host: smtp.fastmail.com
+      email_port: 587
+      write_timeout: 40s
+      read_timeout: 40s
+      exec_timeout: 40s
+      healthcheck_interval: 5s
+    secrets:
+      - b2appkey
+      - b2keyid
+      - b2server
+      - b2bucket
+      - mail-from
+      - mail-password
+      - mail-username
+    annotations:
+      topic: cron-function
+      schedule: "15 21 * * *"
+
+
