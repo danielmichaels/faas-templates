@@ -1,12 +1,24 @@
 # Timesheet Calculator
 
-> what do?
+> Sends emails about my contract hours
+
+This function calculates the remaining hours in my contract as a reminder for
+what I need to be doing daily and monthly in order to maximise my income.
 
 ## Getting Started
 
+This runs in OpenFaaS or faasd.
+
+Get the complete list of possible options by calling `make`.
+
 ### Deploying
 
+To deploy it, run either `faas-cli up -f pollen-detector.yml` or `make prod/up`.
+
 ### Developing
+
+To develop locally, run `make dev/reload` which will create a container with all
+the code from this folder and hot reload it on change.
 
 ## Secrets
 
@@ -38,3 +50,9 @@ The following files are needed in the `secrets` repo.
 Docker compose will use this to load in the variables during development.
 
 ## Requirements
+
+This function requires `cron-connector`. To install it into the cluster use 
+`arkade install cron-connector`. 
+
+Email SMTP access. I use fastmail. Note: fastmail port recommended 465 but my
+VPS provider blocks 465, so we use 587 instead.
