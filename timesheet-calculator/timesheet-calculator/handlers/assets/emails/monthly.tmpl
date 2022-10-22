@@ -3,7 +3,8 @@
 {{define "plainBody"}}
   This week's timesheet review {{ formatTime "2006-01-02" now }}
 
-  This week you worked: {{ .MeanDaily }}
+  This week you worked '{{ .MeanDaily }}' on average per day
+    For a total of '{{ .TotalHousr }}'
   Earned approximately: {{ .Income}} (pre-tax and super)
   Worked {{ .NumDays }} days in total.
 
@@ -23,13 +24,14 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
   </head>
   <body>
-    <h1>Timesheet review for INSERT MONTH</h1>
-    <p>This week you worked: {{ .MeanDaily }} this month</p>
+    <h1>Timesheet review for {{ .Month }}</h1>
+    <p>This week you worked: {{ .MeanDaily }} on average per day</p>
+    <p>For a total of {{ .TotalHours }}</p>
     <p>Earned approximately: {{ .Income}} <small>(pre-tax and super)</small></p>
     <p>And worked {{ .NumDays }} days.</p>
     <hr>
     <p>Contract End: {{ .ContractEnd }}</p>
-    <p>Contract Hours Remaining: {{ .ContractHoursLeft}}</p>
+    <p>Contract Hours Remaining: {{ .ContractHoursLeft }}</p>
     <hr>
     <p>Average hours to do each day to reach contract zero: {{ formatFloat .AverageHours 2 }} hours per day</p>
     <small>Sent at: {{now}}</small>

@@ -13,7 +13,7 @@ var (
 	NewContractEnd = time.Date(2024, 07, 00, 0, 0, 0, 00, time.UTC)
 )
 
-func ContractHoursToNow(secs int) (time.Duration, error) {
+func secondsToHours(secs int) (time.Duration, error) {
 	h, err := time.ParseDuration(fmt.Sprintf("%ds", secs))
 	if err != nil {
 		return 0, fmt.Errorf("failed to parse duration: %w", err)
@@ -21,12 +21,29 @@ func ContractHoursToNow(secs int) (time.Duration, error) {
 	return h, nil
 }
 
-func WeeklyMeanDaily(t []*Time) (time.Duration, error) {
+// MeanDuration returns a time.Duration from a slice of Time, specifically, transforming
+// []Time.TotalTime into a time.Duration and dividing it by the length of the array.
+func MeanDuration(t []*Time) (time.Duration, error) {
 	md := 0
 	for _, v := range t {
-		md = v.TotalTime
+		md += v.TotalTime
 	}
-	meanDaily, err := ContractHoursToNow(md)
+	md = md / len(t)
+	meanDuration, err := secondsToHours(md)
+	if err != nil {
+		return 0, err
+	}
+	return meanDuration, nil
+}
+
+// CumulativeDuration returns a time.Duration from a slice of Time, specifically, transforming
+// []Time.TotalTime into a time.Duration
+func CumulativeDuration(t []*Time) (time.Duration, error) {
+	md := 0
+	for _, v := range t {
+		md += v.TotalTime
+	}
+	meanDaily, err := secondsToHours(md)
 	if err != nil {
 		return 0, err
 	}
