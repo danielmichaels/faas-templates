@@ -18,12 +18,18 @@ var (
 	toEmail     = "dan@danielms.site"
 )
 
+type result struct {
+	Daily   bool `json:"daily"`
+	Weekly  bool `json:"weekly"`
+	Monthly bool `json:"monthly"`
+}
 type Application struct {
-	Db     *handlers.Db
-	Cal    *handlers.ContractCalendar
-	Time   *handlers.TimeModel
-	Mailer *handlers.Mailer
-	B2     *handlers.Store
+	Db       *handlers.Db
+	Cal      *handlers.ContractCalendar
+	Time     *handlers.TimeModel
+	Mailer   *handlers.Mailer
+	B2       *handlers.Store
+	emailQty *result
 }
 
 func Handle(w http.ResponseWriter, r *http.Request) {
@@ -70,7 +76,8 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 			string(mailPassword),
 			string(mailFrom),
 		),
-		B2: b2,
+		B2:       b2,
+		emailQty: &result{},
 	}
 	list, err := app.B2.Data.List()
 	if err != nil {
@@ -109,16 +116,107 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 		"AverageHours":      avgHourDaily,
 		"ContractEnd":       handlers.OldContractEnd.Format("02-01-2006"),
 	}
-	log.Println("attempting to send email")
-	err = app.Mailer.SendDaily(toEmail, data)
-	if err != nil {
-		log.Println("email failed to send")
-		handlers.ServerError(w, r, err)
-		return
+	if app.Cal.Calendar.IsWorkday(time.Now()) {
+		log.Println("attempting to send daily email")
+		err = app.Mailer.SendDaily(toEmail, data)
+		if err != nil {
+			log.Println("email failed to send")
+			handlers.ServerError(w, r, err)
+			return
+		}
+		log.Println("successfully sent email")
+		app.emailQty.Daily = true
 	}
 
-	log.Println("successfully sent email")
-	_ = handlers.WriteJSON(w, http.StatusOK, handlers.Envelope{"status": "OK"}, nil)
+	if app.Cal.IsFriday() {
+		log.Println("attempting to send weekly email")
+		t, err := app.Db.GetLastWeek(handlers.LastSevenDays)
+		if err != nil {
+			log.Println("error: failed to determine last weeks information")
+			handlers.ErrorResponse(w, r, http.StatusNotFound, err, "not found")
+			return
+		}
+
+		meanDaily, err := handlers.MeanDuration(t)
+		if err != nil {
+			log.Println("error: failed to determine last weeks information")
+			handlers.ServerError(w, r, err)
+			return
+		}
+		cumulativeHours, err := handlers.CumulativeDuration(t)
+		if err != nil {
+			log.Println("error: failed to determine cumulative hours")
+			handlers.ServerError(w, r, err)
+			return
+		}
+		weeklyData := map[string]any{
+			"MonthDaysLeft":     app.Cal.DaysLeftThisMonth(),
+			"ContractHoursLeft": app.Cal.HoursLeft(),
+			"AverageHours":      avgHourDaily,
+			"TotalHours":        cumulativeHours,
+			"ContractEnd":       handlers.OldContractEnd.Format("02-01-2006"),
+			"Income":            handlers.EstimatedIncome(t),
+			"MeanDaily":         meanDaily,
+			"NumDays":           len(t),
+		}
+		log.Println(weeklyData)
+
+		err = app.Mailer.SendWeekly(toEmail, weeklyData)
+		if err != nil {
+			log.Println("email failed to send")
+			handlers.ServerError(w, r, err)
+			return
+		}
+		log.Println("successfully sent email")
+		app.emailQty.Weekly = true
+	}
+
+	// End of the month
+	if app.Cal.Calendar.WorkdaysRemain(time.Now()) == 0 {
+		log.Println("attempting to send month email")
+		t, err := app.Db.GetLastMonth(handlers.LastCalendarMonth)
+		if err != nil {
+			log.Println("error: failed to determine last months information")
+			handlers.ErrorResponse(w, r, http.StatusNotFound, err, "not found")
+			return
+		}
+
+		meanDaily, err := handlers.MeanDuration(t)
+		if err != nil {
+			log.Println("error: failed to determine last months information")
+			handlers.ServerError(w, r, err)
+			return
+		}
+		cumulativeHours, err := handlers.CumulativeDuration(t)
+		if err != nil {
+			log.Println("error: failed to determine cumulative hours")
+			handlers.ServerError(w, r, err)
+			return
+		}
+
+		monthlyData := map[string]any{
+			"ContractHoursLeft": app.Cal.HoursLeft(),
+			"AverageHours":      avgHourDaily,
+			"ContractEnd":       handlers.OldContractEnd.Format("02-01-2006"),
+			"Income":            handlers.EstimatedIncome(t),
+			"TotalHours":        cumulativeHours,
+			"MeanDaily":         meanDaily,
+			"Month":             time.Now().Month(),
+			"NumDays":           len(t),
+		}
+		log.Println(monthlyData)
+
+		err = app.Mailer.SendMonthly(toEmail, monthlyData)
+		if err != nil {
+			log.Println("email failed to send")
+			handlers.ServerError(w, r, err)
+			return
+		}
+		log.Println("successfully sent email")
+		app.emailQty.Monthly = true
+	}
+
+	_ = handlers.WriteJSON(w, http.StatusOK, handlers.Envelope{"status": "OK", "code": 200, "result": app.emailQty}, nil)
 }
 
 func openDB(dsn string) (*sql.DB, error) {

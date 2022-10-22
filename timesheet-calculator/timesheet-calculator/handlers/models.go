@@ -72,6 +72,72 @@ func (db *Db) ListTimesheet(query string) ([]*Time, error) {
 	return times, nil
 }
 
+func (db *Db) GetLastWeek(query string) ([]*Time, error) {
+	rows, err := db.Query(query)
+	if err != nil {
+		return nil, fmt.Errorf("db.getlastweek error: %s", err)
+	}
+	defer rows.Close()
+
+	var times []*Time
+	for rows.Next() {
+		var t Time
+		err := rows.Scan(
+			&t.Start,
+			&t.End,
+			&t.Income,
+			&t.TotalTime,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("db.getlastweek error: %s", err)
+		}
+		t.TotalTimeCalc, err = t.InHours()
+		if err != nil {
+			return nil, fmt.Errorf("failed to calculate total time: %s", err.Error())
+		}
+		times = append(times, &t)
+	}
+	return times, nil
+}
+
+func (db *Db) GetLastMonth(query string) ([]*Time, error) {
+	rows, err := db.Query(query)
+	if err != nil {
+		return nil, fmt.Errorf("db.getlastweek error: %s", err)
+	}
+	defer rows.Close()
+
+	var times []*Time
+	for rows.Next() {
+		var t Time
+		err := rows.Scan(
+			&t.Start,
+			&t.End,
+			&t.Income,
+			&t.TotalTime,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("db.getlastweek error: %s", err)
+		}
+		t.TotalTimeCalc, err = t.InHours()
+		if err != nil {
+			return nil, fmt.Errorf("failed to calculate total time: %s", err.Error())
+		}
+		times = append(times, &t)
+	}
+	return times, nil
+}
+
+// EstimatedIncome returns a string representing total income from a slice of
+// Time, specifically using the Time.Income to get the amount for each day.
+func EstimatedIncome(income []*Time) string {
+	total := 0.0
+	for _, i := range income {
+		total += i.Income
+	}
+	return fmt.Sprintf("$%.2f", total)
+}
+
 type ContractCalendar struct {
 	Calendar       cal.BusinessCalendar
 	HoursRemaining time.Duration
@@ -101,7 +167,7 @@ func (c *ContractCalendar) HoursLeft() time.Duration {
 
 // MeanDaily calculates average daily hours needed to finish contract at zero hours
 func (c *ContractCalendar) MeanDaily(contractHours, totalSeconds int) (float64, error) {
-	ch, err := ContractHoursToNow(totalSeconds)
+	ch, err := secondsToHours(totalSeconds)
 	if err != nil {
 		return 0, err
 	}
@@ -114,41 +180,16 @@ func (c *ContractCalendar) DaysLeftThisMonth() int {
 	return c.Calendar.WorkdaysInRange(time.Now(), remainder)
 }
 
-// below is todo later
+func (c *ContractCalendar) IsFriday() bool {
+	if time.Now().Weekday() == time.Friday {
+		return true
+	}
+	return false
+}
 
-// EndOfMonthTrigger creates an event based on the time being the end of this
-// calendar month. It takes in an Event and publishes it using a Publisher.
-func (c *ContractCalendar) EndOfMonthTrigger(e Event) (*Publisher, error) {
+func (c *ContractCalendar) IsEndOfMonth() bool {
 	if c.Calendar.WorkdaysRemain(time.Now()) == 0 {
-		return &Publisher{}, nil
+		return true
 	}
-	return nil, nil
-}
-
-type Event struct {
-	message any
-	to      string
-	from    string
-}
-type Publisher struct {
-	carrier Carrier
-	data    Event
-}
-
-const (
-	Email Carrier = iota
-	Telegram
-)
-
-type Carrier int64
-
-func (c Carrier) String() string {
-	switch c {
-	case Email:
-		return "email"
-	case Telegram:
-		return "telegram"
-	default:
-		return "email"
-	}
+	return false
 }
