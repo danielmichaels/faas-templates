@@ -158,8 +158,8 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 			"Income":            handlers.EstimatedIncome(t),
 			"MeanDaily":         meanDaily,
 			"NumDays":           len(t),
+			"Times":             t,
 		}
-		log.Println(weeklyData)
 
 		err = app.Mailer.SendWeekly(toEmail, weeklyData)
 		if err != nil {
@@ -203,8 +203,8 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 			"MeanDaily":         meanDaily,
 			"Month":             time.Now().Month(),
 			"NumDays":           len(t),
+			"Times":             t,
 		}
-		log.Println(monthlyData)
 
 		err = app.Mailer.SendMonthly(toEmail, monthlyData)
 		if err != nil {
@@ -214,6 +214,10 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 		}
 		log.Println("successfully sent email")
 		app.emailQty.Monthly = true
+	}
+
+	if app.emailQty.Daily == false || app.emailQty.Weekly == false || app.emailQty.Monthly == false {
+		log.Println("no emails sent today")
 	}
 
 	_ = handlers.WriteJSON(w, http.StatusOK, handlers.Envelope{"status": "OK", "code": 200, "result": app.emailQty}, nil)

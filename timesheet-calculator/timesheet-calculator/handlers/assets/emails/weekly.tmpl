@@ -33,6 +33,32 @@
     <hr>
     <p>Days left this month: {{ .MonthDaysLeft }}</p>
     <p>Average hours to do each day to reach contract zero: {{ formatFloat .AverageHours 2 }} hours per day</p>
+
+    {{ if .Times }}
+    <h2>Weekly Log</h2>
+      <table>
+      <tr>
+        <th>Start</th>
+        <th>End</th>
+        <th>Hours</th>
+        <th>Income</th>
+      </tr>
+      {{ range .Times }}
+      <tr>
+        <td>{{ slice .Start 5 }}</td>
+        <td>{{ slice .End 5 }}</td>
+        <td>{{ .TotalTimeCalc }}</td>
+        <td>{{ .Income }}</td>
+      </tr>
+      {{ end }}
+      <tr>
+        <td>TOTALS:</td>
+        <td>{{ .NumDays}} Days</td>
+        <td>{{ .TotalHours}}</td>
+        <td>{{ .Income }}</td>
+      </tr>
+      </table>
+    {{ end }}
     <small>Sent at: {{now}}</small>
   </body>
 </html>
