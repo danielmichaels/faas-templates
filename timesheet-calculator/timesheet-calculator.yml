@@ -24,6 +24,6 @@ functions:
       - mail-username
     annotations:
       topic: cron-function
-      schedule: "15 21 * * *"
+      schedule: "15 0 * * *"
 
 
