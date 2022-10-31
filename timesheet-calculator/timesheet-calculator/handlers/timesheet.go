@@ -73,7 +73,7 @@ func searchTimesheetBackward(ts []string) (string, error) {
 	sort.Sort(sort.Reverse(sort.StringSlice(ts)))
 	for _, d := range searchableDates {
 		tFmt := fmt.Sprintf("%d_%02d_%02d", d.Year(), d.Month(), d.Day())
-		ref := fmt.Sprintf("timesheets/timesheet_%s_auto_database.db", tFmt)
+		ref := fmt.Sprintf("timesheets/timetracker_%s.db", tFmt)
 		for _, t := range ts {
 			if ref == t {
 				log.Println("most recent database", ref)
