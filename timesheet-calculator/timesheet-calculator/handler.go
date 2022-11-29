@@ -14,8 +14,9 @@ import (
 )
 
 var (
-	timesheetDb = "/tmp/database.db"
-	toEmail     = "dan@danielms.site"
+	timesheetDb          = "/tmp/database.db"
+	toEmail              = "dan@danielms.site"
+	totalContractedHours = 392 * 8 // days * expected hours per day
 )
 
 type result struct {
@@ -105,7 +106,6 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 		total += v.TotalTime
 	}
 
-	totalContractedHours := 392 * 8
 	avgHourDaily, err := app.Cal.MeanDaily(totalContractedHours, total)
 	if err != nil {
 		handlers.ServerError(w, r, err)

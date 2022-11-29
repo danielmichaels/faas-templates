@@ -180,10 +180,6 @@ func (c *ContractCalendar) DaysLeftThisMonth() int {
 	return c.Calendar.WorkdaysInRange(time.Now(), remainder)
 }
 
-func (c *ContractCalendar) IsFriday() bool {
-	return time.Now().Weekday() == time.Friday
-}
-
 func (c *ContractCalendar) IsSaturday() bool {
 	return time.Now().Weekday() == time.Saturday
 }
