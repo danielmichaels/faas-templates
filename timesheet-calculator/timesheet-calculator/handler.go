@@ -66,7 +66,7 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 	}
 
 	app := Application{
-		Cal:  handlers.NewCalendar(handlers.OldContractEnd),
+		Cal:  handlers.NewCalendar(handlers.ContractEnd),
 		Time: handlers.NewTimeModel(db),
 		Db:   handlers.NewDB(db),
 		Mailer: handlers.NewMailer(
@@ -105,7 +105,8 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 		total += v.TotalTime
 	}
 
-	avgHourDaily, err := app.Cal.MeanDaily(1920*2, total)
+	totalContractedHours := 392 * 8
+	avgHourDaily, err := app.Cal.MeanDaily(totalContractedHours, total)
 	if err != nil {
 		handlers.ServerError(w, r, err)
 		return
@@ -114,7 +115,7 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 		"MonthDaysLeft":     app.Cal.DaysLeftThisMonth(),
 		"ContractHoursLeft": app.Cal.HoursLeft(),
 		"AverageHours":      avgHourDaily,
-		"ContractEnd":       handlers.OldContractEnd.Format("02-01-2006"),
+		"ContractEnd":       handlers.ContractEnd.Format("02-01-2006"),
 	}
 	if app.Cal.Calendar.IsWorkday(time.Now()) {
 		log.Println("attempting to send daily email")
@@ -128,7 +129,7 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 		app.emailQty.Daily = true
 	}
 
-	if app.Cal.IsFriday() {
+	if app.Cal.IsSaturday() {
 		log.Println("attempting to send weekly email")
 		t, err := app.Db.GetLastWeek(handlers.LastSevenDays)
 		if err != nil {
@@ -154,7 +155,7 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 			"ContractHoursLeft": app.Cal.HoursLeft(),
 			"AverageHours":      avgHourDaily,
 			"TotalHours":        cumulativeHours,
-			"ContractEnd":       handlers.OldContractEnd.Format("02-01-2006"),
+			"ContractEnd":       handlers.ContractEnd.Format("02-01-2006"),
 			"Income":            handlers.EstimatedIncome(t),
 			"MeanDaily":         meanDaily,
 			"NumDays":           len(t),
@@ -197,7 +198,7 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 		monthlyData := map[string]any{
 			"ContractHoursLeft": app.Cal.HoursLeft(),
 			"AverageHours":      avgHourDaily,
-			"ContractEnd":       handlers.OldContractEnd.Format("02-01-2006"),
+			"ContractEnd":       handlers.ContractEnd.Format("02-01-2006"),
 			"Income":            handlers.EstimatedIncome(t),
 			"TotalHours":        cumulativeHours,
 			"MeanDaily":         meanDaily,
@@ -216,7 +217,14 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 		app.emailQty.Monthly = true
 	}
 
-	if app.emailQty.Daily == false || app.emailQty.Weekly == false || app.emailQty.Monthly == false {
+	switch {
+	case app.emailQty.Daily == true:
+		break
+	case app.emailQty.Weekly == true:
+		break
+	case app.emailQty.Monthly == true:
+		break
+	default:
 		log.Println("no emails sent today")
 	}
 

@@ -9,8 +9,7 @@ import (
 )
 
 var (
-	OldContractEnd = time.Date(2022, 11, 30, 0, 0, 0, 00, time.UTC)
-	NewContractEnd = time.Date(2024, 07, 00, 0, 0, 0, 00, time.UTC)
+	ContractEnd = time.Date(2024, 07, 00, 0, 0, 0, 00, time.UTC)
 )
 
 func secondsToHours(secs int) (time.Duration, error) {
